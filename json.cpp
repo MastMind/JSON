@@ -5,8 +5,6 @@
 #include "json.h"
 
 
-//static void json_array_print(FILE* f, json_array_t array);
-//static void json_object_print(FILE* f, json_object_t object);
 static char* strip_line(const char* line);
 static int parse_line(json_value_t v, const char* buf);
 
@@ -569,45 +567,6 @@ int json_object_clear(json_object_t o) {
 	return 0;
 }
 
-/*int json_dump_array(json_array_t o, const char* filename) {
-	if (!o || !filename || !strlen(filename)) {
-		return -1;
-	}
-
-	FILE* f = fopen(filename, "wb");
-	if (!f) {
-#ifndef JSON_NO_PRINT_ERRORS
-		fprintf(stderr, "json_dump_array : can't open file %s for writing\n", filename);
-#endif
-		return -2;
-	}
-
-	json_array_print(f, o);
-
-	fclose(f);
-
-	return 0;
-}
-
-int json_dump_object(json_object_t o, const char* filename) {
-	if (!o || !filename || !strlen(filename)) {
-		return -1;
-	}
-
-	FILE* f = fopen(filename, "wb");
-	if (!f) {
-#ifndef JSON_NO_PRINT_ERRORS
-		fprintf(stderr, "json_dump_object : can't open file %s for writing\n", filename);
-#endif
-		return -2;
-	}
-
-	json_object_print(f, o);
-
-	fclose(f);
-
-	return 0;
-}*/
 int json_array_to_str(json_array_t array, char* str) {
 	if (!array || !str) {
 		return -1;
@@ -663,7 +622,6 @@ int json_object_to_str(json_object_t object, char* str) {
 
 	unsigned int i = 0;
 	while (object->element && *(object->element + i)) {
-		//fprintf(f, "\"%s\":", (*(object->element + i))->key);
 		sprintf(p, "\"%s\":", (*(object->element + i))->key);
 		p += strlen(p);
 		switch ((*(object->element + i))->value->type) {
@@ -874,7 +832,6 @@ static char* strip_line(const char* line) {
 static int parse_line(json_value_t v, const char* buf) {
 	char* l = strip_line(buf);
 	char* line = NULL;
-	////fprintf(stderr, "parse_line: l \"%s\"\n", l);
 	int ret = 0;
 	char* fragment = NULL;
 	char* key = NULL;
@@ -912,11 +869,9 @@ static int parse_line(json_value_t v, const char* buf) {
 	while (*line) {
 		switch (v->type) {
 			case JSON_ARRAY:
-				//fprintf(stderr, "parse_line: JSON_ARRAY case %s\n line: %s\n item_flag: %d\n", fragment, line, item_flag);
 				switch (*line) {
 					case ',':
 						if (!item_flag) {
-							//fprintf(stderr, "parse_line: item flag refreshed\n");
 							item_flag = 1;
 							break;
 						}
@@ -933,8 +888,6 @@ static int parse_line(json_value_t v, const char* buf) {
 						break;
 					case '[':
 					case '{':
-						////fprintf(stderr, "parse_line: case: %c\n", *line);
-						////fprintf(stderr, "parse_line: line: %s\n", line);
 						val = (json_value_t)malloc(sizeof(struct json_value));
 						if (!val) {
 							//something wrong
@@ -944,11 +897,8 @@ static int parse_line(json_value_t v, const char* buf) {
 
 						ret = parse_line(val, line);
 						if (ret) {
-							////fprintf(stderr, "parse_line: error here with code %d\n", ret);
 							goto end;
 						}
-
-						////fprintf(stderr, "parse_line: we here 0\n");
 
 						//need line shift
 						if (*line == '{') {
@@ -973,13 +923,10 @@ static int parse_line(json_value_t v, const char* buf) {
 							}
 						}
 
-						////fprintf(stderr, "parse_line: we here 1\n");
-
 						if (*line == '[') {
 							line++;
 							brackets_score = 1;
 							while (brackets_score > 0 && *line) {
-								//fprintf(stderr, "parse_line: brackets_score %d\n", brackets_score);
 								if (*line == '[') {
 									brackets_score++;
 								}
@@ -998,8 +945,6 @@ static int parse_line(json_value_t v, const char* buf) {
 							}	
 						}
 
-						//fprintf(stderr, "parse_line: we here 2\n");
-
 						if (val->type == JSON_ARRAY) {
 							ret = json_array_add_array((json_array_t)(v->value), (json_array_t)(val->value));
 						} else if (val->type == JSON_OBJECT) {
@@ -1014,13 +959,11 @@ static int parse_line(json_value_t v, const char* buf) {
 
 						item_flag = 0;
 						line--;
-						//fprintf(stderr, "parse_line: line is %s\n", line);
 						break;
 					case ']':
 						//end of array
 						if (item_flag) {
 							ret = json_array_add_string((json_array_t)(v->value), fragment);
-							////fprintf(stderr, "parse_line: end of array. Add fragment: %s\n", fragment);
 						}
 
 						end_flag = 1;
@@ -1067,7 +1010,6 @@ static int parse_line(json_value_t v, const char* buf) {
 					case '\\':
 						line++;
 					default:
-						//fragment = (char*)realloc(fragment, sizeof(char) * (fragment ? strlen(fragment) + 2 : 2));
 						if (!fragment) {
 							fragment = (char*)malloc(sizeof(char) * 2);
 							if (!fragment) {
@@ -1078,7 +1020,6 @@ static int parse_line(json_value_t v, const char* buf) {
 
 							*fragment = *line;
 							*(fragment + 1) = '\0';
-							////fprintf(stderr, "parse_line: malloc fragment: %s\n", fragment);
 						} else {
 							fragment = (char*)realloc(fragment, sizeof(char) * (strlen(fragment) + 2));
 							if (!fragment) {
@@ -1089,19 +1030,15 @@ static int parse_line(json_value_t v, const char* buf) {
 
 							*(fragment + strlen(fragment) + 1) = '\0';
 							*(fragment + strlen(fragment)) = *line;
-
-							////fprintf(stderr, "parse_line: realloc fragment: %s\n", fragment);
 						}
 
 						break;
 				}
 				break;
 			case JSON_OBJECT:
-				//fprintf(stderr, "parse_line: JSON_OBJECT case %s\n line: %s\n item_flag: %d\n key: %s\n", fragment, line, item_flag, key);
 				switch (*line) {
 					case ':':
 						if (key || !fragment) {
-							//fprintf(stderr, "parse_line: no key\n");
 							//wrong syntax
 							ret = -3;
 							goto end;
@@ -1119,19 +1056,11 @@ static int parse_line(json_value_t v, const char* buf) {
 						break;
 					case ',':
 						if (!item_flag) {
-							/*if (!key) {
-								//fprintf(stderr, "parse_line: no key and item\n");
-								//wrong syntax
-								ret = -3;
-								goto end;
-							}*/
-
 							item_flag = 1;
 							break;
 						}
 
 						if (!key) {
-							//fprintf(stderr, "parse_line: no key in comma case\n");
 							//wrong syntax
 							ret = -3;
 							goto end;
@@ -1154,7 +1083,6 @@ static int parse_line(json_value_t v, const char* buf) {
 					case '{':
 						if (!key) {
 							//wrong syntax
-							//fprintf(stderr, "parse_line: not key in brackets\n");
 							ret = -3;
 							goto end;
 						}
@@ -1168,7 +1096,6 @@ static int parse_line(json_value_t v, const char* buf) {
 
 						ret = parse_line(val, line);
 						if (ret) {
-							//fprintf(stderr, "parse_line: recursive call return %d\n", ret);
 							goto end;
 						}
 
@@ -1190,19 +1117,15 @@ static int parse_line(json_value_t v, const char* buf) {
 
 							if (brackets_score) {
 								//wrong syntax
-								//fprintf(stderr, "parse_line: wrong brackets {}\n");
 								ret = -3;
 								goto end;
 							}
 						}
 
-						////fprintf(stderr, "parse_line: we here 1\n");
-
 						if (*line == '[') {
 							line++;
 							brackets_score = 1;
 							while (brackets_score > 0 && *line) {
-								//fprintf(stderr, "parse_line: brackets_score %d\n", brackets_score);
 								if (*line == '[') {
 									brackets_score++;
 								}
@@ -1216,7 +1139,6 @@ static int parse_line(json_value_t v, const char* buf) {
 
 							if (brackets_score) {
 								//wrong syntax
-								//fprintf(stderr, "parse_line: wrong bracket []\n");
 								ret = -3;
 								goto end;
 							}	
@@ -1244,25 +1166,20 @@ static int parse_line(json_value_t v, const char* buf) {
 						if (item_flag) {
 							if (!key) {
 								//wrong syntax
-								//fprintf(stdout, "parse_line: fragment %s\n", fragment);
 								if (fragment) {
 									fprintf(stderr, "parse_line: end of object error\n");
 									ret = -3;
 									goto end;
-									//ret = json_object_add_string((json_object_t)(v->value), "NULL", NULL);
-									//((json_object_t)(v->value))//TODO
 								}
 							} else {
 								ret = json_object_add_string((json_object_t)(v->value), key, fragment);
 							}
-							//fprintf(stderr, "parse_line: json_object_add_string call return %d\n", ret);
 						}
 
 						end_flag = 1;
 						goto end;
 					//bad characters
 					case ']':
-						//fprintf(stderr, "parse_line: bad character case\n");
 						ret = -3;
 						goto end;
 					//other characters
@@ -1275,7 +1192,6 @@ static int parse_line(json_value_t v, const char* buf) {
 								*line != ':' &&
 								*line != '}') {
 								//wrong syntax
-								//fprintf(stderr, "parse_line: bad character case space\n");
 								ret = -3;
 								goto end;
 							}
@@ -1286,7 +1202,6 @@ static int parse_line(json_value_t v, const char* buf) {
 					case '\"':
 						if (fragment) {
 							//wrong syntax
-							//fprintf(stderr, "parse_line: fragment case \"\n");
 							ret = -3;
 							goto end;
 						}
@@ -1306,7 +1221,6 @@ static int parse_line(json_value_t v, const char* buf) {
 					case '\\':
 						line++;
 					default:
-						//fragment = (char*)realloc(fragment, sizeof(char) * (fragment ? strlen(fragment) + 2 : 2));
 						if (!fragment) {
 							fragment = (char*)malloc(sizeof(char) * 2);
 							if (!fragment) {
@@ -1341,7 +1255,6 @@ static int parse_line(json_value_t v, const char* buf) {
 
 	if (!end_flag) {
 		//record is not ended
-		//fprintf(stderr, "parse_line: no end flag\n");
 		ret = -3;
 	}
 

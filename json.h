@@ -36,7 +36,7 @@ struct json_record {
 
 struct json_array {
 	json_value_t* element;
-	unsigned int size;	
+	unsigned int size;
 };
 
 struct json_object {
@@ -60,8 +60,6 @@ json_value_t json_object_get_element(json_object_t o, const char* key);
 int json_object_del_element(json_object_t o, const char* key);
 int json_object_clear(json_object_t o);
 
-//int json_dump_array(json_array_t o, const char* filename);
-//int json_dump_object(json_object_t o, const char* filename);
 int json_array_to_str(json_array_t o, char* str);
 int json_object_to_str(json_object_t o, char* str);
 void json_array_print(FILE* f, json_array_t array);
