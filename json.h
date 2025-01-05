@@ -18,29 +18,29 @@ typedef struct json_record* json_record_t;
 typedef struct json_value* json_value_t;
 
 typedef enum record_type_s {
-	EMPTY = 0,
-	JSON_STRING,
-	JSON_ARRAY,
-	JSON_OBJECT
+    EMPTY = 0,
+    JSON_STRING,
+    JSON_ARRAY,
+    JSON_OBJECT
 } record_type;
 
 struct json_value {
-	record_type type;
-	void* value;
+    record_type type;
+    void* value;
 };
 
 struct json_record {
-	char* key;
-	json_value_t value;
+    char* key;
+    json_value_t value;
 };
 
 struct json_array {
-	json_value_t* element;
-	unsigned int size;
+    json_value_t* element;
+    unsigned int size;
 };
 
 struct json_object {
-	json_record_t* element;
+    json_record_t* element;
 };
 
 
