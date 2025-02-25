@@ -1,8 +1,9 @@
 #ifndef JSON_H
 #define JSON_H
 
-
+#ifdef DEBUG
 #include <stdio.h>
+#endif
 
 
 #define JSON_NO_PRINT_ERRORS
@@ -16,7 +17,6 @@ typedef struct json_object* json_object_t;
 typedef struct json_array* json_array_t;
 typedef struct json_record* json_record_t;
 typedef struct json_value* json_value_t;
-
 typedef enum record_type_s {
     EMPTY = 0,
     JSON_STRING,
@@ -36,7 +36,7 @@ struct json_record {
 
 struct json_array {
     json_value_t* element;
-    unsigned int size;
+    unsigned int size;  
 };
 
 struct json_object {
@@ -60,10 +60,12 @@ json_value_t json_object_get_element(json_object_t o, const char* key);
 int json_object_del_element(json_object_t o, const char* key);
 int json_object_clear(json_object_t o);
 
-int json_array_to_str(json_array_t o, char* str);
-int json_object_to_str(json_object_t o, char* str);
+int json_array_to_str(json_array_t array, char* str);
+int json_object_to_str(json_object_t object, char* str);
+#ifdef DEBUG
 void json_array_print(FILE* f, json_array_t array);
 void json_object_print(FILE* f, json_object_t object);
+#endif
 
 json_value_t json_from_file(const char* filename);
 json_value_t json_from_string(const char* str);

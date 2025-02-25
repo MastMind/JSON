@@ -851,9 +851,9 @@ static int parse_line(json_value_t v, const char* buf) {
     json_value_t val = NULL;
 
     int brackets_score = 0;
-
     int item_flag = 1;
     int end_flag = 0;
+    int array_or_object_flag = 0;
 
     if (!l) {
         return -1;
@@ -886,6 +886,17 @@ static int parse_line(json_value_t v, const char* buf) {
                     case ',':
                         if (!item_flag) {
                             item_flag = 1;
+                            if (array_or_object_flag) {
+                                line--;
+                            }
+
+                            break;
+                        }
+
+                        if (array_or_object_flag) {
+                            //skip spaces
+                            line += strspn(line, " \n\t");
+                            array_or_object_flag = 0;
                             break;
                         }
 
@@ -894,6 +905,7 @@ static int parse_line(json_value_t v, const char* buf) {
                             //something wrong
                             goto end;
                         }
+
                         if (fragment) {
                             free(fragment);
                             fragment = NULL;
@@ -967,6 +979,8 @@ static int parse_line(json_value_t v, const char* buf) {
                             goto end;
                         }
 
+                        array_or_object_flag = 1;
+
                         free(val);
                         val = NULL;
 
@@ -998,6 +1012,18 @@ static int parse_line(json_value_t v, const char* buf) {
                                 goto end;
                             }
                         }
+
+                        if (array_or_object_flag) {
+                            if (*line && 
+                                *line != ',' &&
+                                *line != '}' &&
+                                *line != ']') {
+                                ret = -3;
+                                goto end;
+                            }
+                        }
+
+                        array_or_object_flag = 0;
 
                         line--;
                         break;
@@ -1070,10 +1096,20 @@ static int parse_line(json_value_t v, const char* buf) {
                     case ',':
                         if (!item_flag) {
                             item_flag = 1;
+
+                            if (array_or_object_flag) {
+                                line--;
+                            }
                             break;
                         }
 
                         if (!key) {
+                            if (array_or_object_flag) {
+                                //skip comma and spaces
+                                line += strspn(line, " \n\t");
+                                array_or_object_flag = 0;
+                                break;
+                            }
                             //wrong syntax
                             ret = -3;
                             goto end;
@@ -1166,6 +1202,8 @@ static int parse_line(json_value_t v, const char* buf) {
                             goto end;
                         }
 
+                        array_or_object_flag = 1;
+
                         free(val);
                         val = NULL;
                         free(key);
@@ -1195,6 +1233,7 @@ static int parse_line(json_value_t v, const char* buf) {
                     case '\n':
                     case '\t':
                         line += strspn(line, " \n\t");
+                        
                         if (fragment) {
                             if (*line != ',' &&
                                 *line != ':' &&
@@ -1205,6 +1244,17 @@ static int parse_line(json_value_t v, const char* buf) {
                             }
                         }
 
+                        if (array_or_object_flag) {
+                            if (*line && 
+                                *line != ',' &&
+                                *line != '}' &&
+                                *line != ']') {
+                                ret = -3;
+                                goto end;
+                            }
+                        }
+
+                        array_or_object_flag = 0;
                         line--;
                         break;
                     case '\"':
